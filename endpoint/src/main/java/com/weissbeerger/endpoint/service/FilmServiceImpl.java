@@ -3,7 +3,6 @@ package com.weissbeerger.endpoint.service;
 import org.json.JSONObject;
 import org.json.XML;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
@@ -70,13 +69,15 @@ public class FilmServiceImpl implements FilmService {
 		params.set(SearchParameters.API_KEY, apikey);
 		UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(OMDB_API_URL).queryParams(params).build();
 		ResponseEntity<String> responseResult = restTemplate.getForEntity(uriComponents.toUriString(), String.class);
-		if(responseResult.getStatusCode() == HttpStatus.OK) {
-			JSONObject jsonObject = new JSONObject(responseResult.getBody());
-			boolean found = jsonObject.getBoolean("Response");
-			xml = XML.toString(found ? jsonObject: "", "Result") ;
-			if(found && title!=null) {
-				repository.save(title, xml);
-			}
+	    String body = responseResult.getBody();
+		JSONObject jsonObject = new JSONObject(body);
+		boolean found = jsonObject.getBoolean("Response");
+		if(!found && !responseResult.getBody().contains("Movie not found!")) {
+			throw new SearchException(body);
+		}
+		xml = XML.toString(found ? jsonObject: "", "Result") ;
+		if(found && title!=null) {
+			repository.save(title, xml);
 		}
 		return new SearchResult(xml, false);
 	}

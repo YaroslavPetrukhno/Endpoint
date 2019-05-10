@@ -56,7 +56,8 @@ public class FilmServiceImplTest {
 
 	@Test
 	public void testSearchNoResult() {
-		ResponseEntity<String> resp = ResponseEntity.ok("{ \"Response\" : \"False\"}");
+		ResponseEntity<String> resp = ResponseEntity
+				.ok("{ \"Response\" : \"False\", \"Error\": \"Movie not found!\"}");
 		Mockito.when(restTemplate.getForEntity(anyString(), eq(String.class))).thenReturn(resp);
 		SearchResult sr = filmService.search(headers);
 		assertEquals(sr.xml, "<Result/>");
